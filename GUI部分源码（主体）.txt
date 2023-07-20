@@ -1,0 +1,552 @@
+class MyMainForm(QMainWindow, Ui_MainWindow):
+
+    def __init__(self):
+        super().__init__()
+        self.temp_upline = 40.0
+        self.temp_downline = 0.0
+        self.hum_upline = 60.0
+        self.hum_downline = 10.0
+        self.lum_upline = 1100.0
+        self.lum_downline = 450.0
+        self.air_upline = 100.0
+        self.air_downline = 130.0
+        self.init_graph_temp()
+        self.init_graph_hum()
+        self.init_graph_lum()
+        self.init_graph_mag()
+        self.init_graph_air()
+        self.init_thread()
+        self.msghistory = list()
+        self.setupUi(self)
+        self.init_ui()
+
+    def init_graph_temp(self):
+        # 添加 PlotWidget 控件
+        self.plotWidget_temp = PlotWidget(self)
+        # 设置该控件尺寸和相对位置
+        self.plotWidget_temp.setGeometry(QtCore.QRect(172, 226, 530, 230))
+        self.plotWidget_temp.setMouseEnabled(x=True, y=False)
+        myPen = pq.mkPen(color=(0, 155, 0), width=2)
+        self.plotWidget_temp.setBackground('#DAA196')
+
+
+        self.data_temp = []
+        for _ in range(200):
+            self.data_temp.append(1)
+
+        self.curve_temp = self.plotWidget_temp.plot(self.data_temp, name="mode1", pen=myPen)
+        # 设定定时器
+        self.timer_temp = pq.QtCore.QTimer()
+        # 定时器信号绑定 update_data 函数
+        self.timer_temp.timeout.connect(self.update_data_temp)
+        self.timer_temp.start(500)  # todo
+
+    def update_data_temp(self):
+        self.data_temp[:-1] = self.data_temp[1:]
+        try:
+            self.data_temp[-1] = float(self.tem_thread.tum_value)
+        except:
+            print("temp failed")
+        # 数据填充到绘制曲线中
+        self.curve_temp.setData(self.data_temp)
+
+    def init_graph_hum(self):
+        # 添加 PlotWidget 控件
+        self.plotWidget_hum = PlotWidget(self)
+        # 设置该控件尺寸和相对位置
+        self.plotWidget_hum.setGeometry(QtCore.QRect(172, 226, 530, 230))
+        self.plotWidget_hum.setMouseEnabled(x=True, y=False)
+        myPen = pq.mkPen(color=(0, 155, 0), width=2)
+
+        self.plotWidget_hum.setBackground('#67BDB7')
+
+        self.data_hum = []
+        for _ in range(200):
+            self.data_hum.append(1)
+
+        self.curve_hum = self.plotWidget_hum.plot(self.data_hum, name="mode1", pen=myPen)
+        # 设定定时器
+        self.timer_hum = pq.QtCore.QTimer()
+        # 定时器信号绑定 update_data 函数
+        self.timer_hum.timeout.connect(self.update_data_hum)
+        self.timer_hum.start(500)  # todo
+
+    def update_data_hum(self):
+        self.data_hum[:-1] = self.data_hum[1:]
+        try:
+            self.data_hum[-1] = float(self.hum_thread.hum_value)
+        except:
+            print("hum failed")
+        # 数据填充到绘制曲线中
+        self.curve_hum.setData(self.data_hum)
+
+    def init_graph_lum(self):
+        # 添加 PlotWidget 控件
+        self.plotWidget_lum = PlotWidget(self)
+        self.plotWidget_lum.setGeometry(QtCore.QRect(172, 226, 530, 230))
+        self.plotWidget_lum.setMouseEnabled(x=True, y=False)
+        myPen = pq.mkPen(color=(0, 155, 0), width=2)
+
+        self.plotWidget_lum.setBackground('#DDB794')
+
+        self.data_lum = []
+        for _ in range(200):
+            self.data_lum.append(1)
+
+        self.curve_lum = self.plotWidget_lum.plot(self.data_lum, name="mode1", pen=myPen)
+        # 设定定时器
+        self.timer_lum = pq.QtCore.QTimer()
+        # 定时器信号绑定 update_data 函数
+        self.timer_lum.timeout.connect(self.update_data_lum)
+        self.timer_lum.start(500)  # todo
+
+    def update_data_lum(self):
+        self.data_lum[:-1] = self.data_lum[1:]
+        try:
+
+            self.data_lum[-1] = float(self.lum_thread.lum_value)
+        except:
+            print("lum failed")
+        # 数据填充到绘制曲线中
+        self.curve_lum.setData(self.data_lum)
+
+    def init_graph_mag(self):
+        # 添加 PlotWidget 控件
+        self.plotWidget_mag = PlotWidget(self)
+        self.plotWidget_mag.setGeometry(QtCore.QRect(172, 226, 530, 230))
+        self.plotWidget_mag.setMouseEnabled(x=True, y=False)
+        myPen = pq.mkPen(color=(0, 155, 0), width=2)
+
+        self.plotWidget_mag.setBackground('#9671BC')
+
+        self.data_mag = []
+        for _ in range(200):
+            self.data_mag.append(1)
+
+        self.curve_mag = self.plotWidget_mag.plot(self.data_mag, name="mode1", pen=myPen)
+        # 设定定时器
+        self.timer_mag = pq.QtCore.QTimer()
+        # 定时器信号绑定 update_data 函数
+        self.timer_mag.timeout.connect(self.update_data_mag)
+        self.timer_mag.start(500)  # todo
+
+    def update_data_mag(self):
+        self.data_mag[:-1] = self.data_mag[1:]
+        try:
+
+            self.data_mag[-1] = float(self.mag_thread.mag_value)
+        except:
+            print("mag failed")
+        # 数据填充到绘制曲线中
+        self.curve_mag.setData(self.data_mag)
+
+    def init_graph_air(self):
+        # 添加 PlotWidget 控件
+        self.plotWidget_air = PlotWidget(self)
+        # 设置该控件尺寸和相对位置
+        self.plotWidget_air.setGeometry(QtCore.QRect(172, 226, 530, 230))
+        self.plotWidget_air.setMouseEnabled(x=True, y=False)
+        myPen = pq.mkPen(color=(0, 155, 0), width=2)
+
+        self.plotWidget_air.setBackground('#B896A3')
+
+        self.data_air = []
+        for _ in range(200):
+            self.data_air.append(1)
+
+        self.curve_air = self.plotWidget_air.plot(self.data_air, name="mode1", pen=myPen)
+        # 设定定时器
+        self.timer_air = pq.QtCore.QTimer()
+        # 定时器信号绑定 update_data 函数
+        self.timer_air.timeout.connect(self.update_data_air)
+        self.timer_air.start(500)  # todo
+
+    def update_data_air(self):
+        self.data_air[:-1] = self.data_air[1:]
+        try:
+            self.data_air[-1] = float(self.air_thread.air_value)
+        except:
+            print("air failed")
+        # 数据填充到绘制曲线中
+        self.curve_air.setData(self.data_air)
+
+#   =================================================================================================================  #
+
+    def init_thread(self):
+        # 创建线程
+        self.tem_thread = TempThread()
+        self.hum_thread = HumThread()
+        self.lum_thread = LumThread()
+        self.air_thread = AirThread()
+        self.mag_thread = MagThread()
+        self.color_thread = ColorThread()
+        # 开始线程
+        self.tem_thread.start()
+        self.hum_thread.start()
+        self.lum_thread.start()
+        self.air_thread.start()
+        self.mag_thread.start()
+        self.color_thread.start()
+
+    def init_ui(self):
+        # 设置样式
+        self.setWindowFlags(Qt.FramelessWindowHint)  # 设置窗口标志：隐藏窗口边框
+
+        # 显示日志
+
+        # 显示上下限
+        self.label_25.setText(str(self.temp_upline))
+        self.label_23.setText(str(self.temp_downline))
+        self.label_36.setText(str(self.hum_upline))
+        self.label_35.setText(str(self.hum_downline))
+        self.label_47.setText(str(self.lum_upline))
+        self.label_46.setText(str(self.lum_downline))
+        self.label_69.setText(str(self.air_upline))
+        self.label_68.setText(str(self.air_downline))
+
+        self.lineEdit.setText(str(self.temp_upline))
+        self.lineEdit_2.setText(str(self.temp_downline))
+        self.lineEdit_3.setText(str(self.lum_upline))
+        self.lineEdit_4.setText(str(self.lum_downline))
+        self.lineEdit_5.setText(str(self.hum_upline))
+        self.lineEdit_6.setText(str(self.hum_downline))
+        self.lineEdit_7.setText(str(self.air_upline))
+        self.lineEdit_8.setText(str(self.air_downline))
+
+        # 信号与槽函数的连接  主页，设置，其他 切换
+        self.pushButton_1.clicked.connect(self.click_shift_1)
+        self.pushButton_2.clicked.connect(self.click_shift_2)
+        self.pushButton_3.clicked.connect(self.click_shift_3)
+        # 主页按键
+        self.pushButton_4.clicked.connect(self.click_shift_4)
+        self.pushButton_5.clicked.connect(self.click_shift_5)
+        self.pushButton_6.clicked.connect(self.click_shift_6)
+        self.pushButton_7.clicked.connect(self.click_shift_7)
+        self.pushButton_8.clicked.connect(self.click_shift_8)
+        # 关闭按钮
+        self.pushButton.clicked.connect(self.click_shift_9)
+        # 日志按钮
+        self.pushButton_20.clicked.connect(self.click_shift_10)
+        self.pushButton_22.clicked.connect(self.click_shift_11)
+        self.pushButton_24.clicked.connect(self.click_shift_12)
+        self.pushButton_26.clicked.connect(self.click_shift_13)
+        self.pushButton_28.clicked.connect(self.click_shift_14)
+        # =======================报警=========================
+        # self.pushButton_21.clicked.connect(self.click_shift_23)
+        # self.pushButton_41.clicked.connect(self.click_shift_24)
+        # self.pushButton_41.clicked.connect(self.click_shift_25)
+        # self.pushButton_41.clicked.connect(self.click_shift_26)
+        # self.pushButton_41.clicked.connect(self.click_shift_27)
+        # 设置按钮
+        self.pushButton_14.clicked.connect(self.click_shift_15)
+        self.pushButton_15.clicked.connect(self.click_shift_16)
+        self.pushButton_16.clicked.connect(self.click_shift_17)
+        self.pushButton_17.clicked.connect(self.click_shift_18)
+        self.pushButton_18.clicked.connect(self.click_shift_19)
+        self.pushButton_19.clicked.connect(self.click_shift_20)
+        self.pushButton_40.clicked.connect(self.click_shift_21)
+        self.pushButton_41.clicked.connect(self.click_shift_22)
+        # 切换按钮
+        self.pushButton_temq1.clicked.connect(self.btn_click1)
+        self.pushButton_tempq2.clicked.connect(self.btn_click2)
+        self.pushButton_tempq3.clicked.connect(self.btn_click7)
+        self.pushButton_humq1.clicked.connect(self.btn_click3)
+        self.pushButton_humq2.clicked.connect(self.btn_click4)
+        self.pushButton_lumq1.clicked.connect(self.btn_click5)
+        self.pushButton_lumq2.clicked.connect(self.btn_click6)
+
+    def btn_click1(self):
+        print(11)
+        self.stackedWidget_temp.setCurrentIndex(1)
+        self.plotWidget_temp.hide()
+
+    def btn_click2(self):
+        print(22)
+        self.stackedWidget_temp.setCurrentIndex(2)
+        # w_main.line.show()
+        # w_main.line_2.show()
+        # w_main.line_3.show()
+        # w_main.line_4.show()
+        # w_main.line_5.show()
+        # w_main.line_6.show()
+        # w_main.line_7.show()
+        # w_main.line_8.show()
+        # w_main.line_9.show()
+        # w_main.line_10.show()
+        # w_main.line_11.show()
+        # w_main.label_tempc1.show()
+        # w_main.label_tempc2.show()
+        # w_main.label_tempc3.show()
+        # w_main.label_tempc4.show()
+        # w_main.label_tempcc.show()
+        # w_main.label_temp_color.show()
+
+    def btn_click3(self):
+        self.stackedWidget_hum.setCurrentIndex(1)
+        self.plotWidget_hum.hide()
+
+    def btn_click4(self):
+        self.stackedWidget_hum.setCurrentIndex(0)
+        self.plotWidget_hum.show()
+
+    def btn_click5(self):
+        self.stackedWidget_lum.setCurrentIndex(1)
+        self.plotWidget_lum.hide()
+
+    def btn_click6(self):
+        self.stackedWidget_lum.setCurrentIndex(0)
+        self.plotWidget_lum.show()
+
+    def btn_click7(self):
+        print(33)
+        self.stackedWidget_temp.setCurrentIndex(0)
+        self.plotWidget_temp.show()
+
+#  ==================================================================================================================  #
+
+    def click_shift_1(self):
+        self.stackedWidget.setCurrentIndex(0)
+        if self.plotWidget_temp.isHidden():
+            self.plotWidget_temp.show()
+
+    def click_shift_2(self):
+        self.stackedWidget.setCurrentIndex(1)  # todo
+        self.plotWidget_temp.hide()
+        self.plotWidget_hum.hide()
+        self.plotWidget_lum.hide()
+        self.plotWidget_mag.hide()
+        self.plotWidget_air.hide()
+
+    def click_shift_3(self):
+        self.stackedWidget.setCurrentIndex(2)  # todo
+        self.plotWidget_temp.hide()
+        self.plotWidget_hum.hide()
+        self.plotWidget_lum.hide()
+        self.plotWidget_mag.hide()
+        self.plotWidget_air.hide()
+
+    def click_shift_4(self):
+        self.stackedWidget_2.setCurrentIndex(0)
+        if self.plotWidget_temp.isHidden():
+            self.plotWidget_temp.show()
+        self.plotWidget_hum.hide()
+        self.plotWidget_lum.hide()
+        self.plotWidget_mag.hide()
+        self.plotWidget_air.hide()
+
+    def click_shift_5(self):
+        self.stackedWidget_2.setCurrentIndex(1)
+        if self.plotWidget_hum.isHidden():
+            self.plotWidget_hum.show()
+        self.plotWidget_temp.hide()
+        self.plotWidget_lum.hide()
+        self.plotWidget_mag.hide()
+        self.plotWidget_air.hide()
+
+    def click_shift_6(self):
+        self.stackedWidget_2.setCurrentIndex(2)
+        if self.plotWidget_lum.isHidden():
+            self.plotWidget_lum.show()
+        self.plotWidget_temp.hide()
+        self.plotWidget_hum.hide()
+        self.plotWidget_mag.hide()
+        self.plotWidget_air.hide()
+
+    def click_shift_7(self):
+        self.stackedWidget_2.setCurrentIndex(3)
+        if self.plotWidget_mag.isHidden():
+            print(4)
+            self.plotWidget_mag.show()
+        self.plotWidget_temp.hide()
+        self.plotWidget_hum.hide()
+        self.plotWidget_lum.hide()
+        self.plotWidget_air.hide()
+
+    def click_shift_8(self):
+        self.stackedWidget_2.setCurrentIndex(4)
+        if self.plotWidget_air.isHidden():
+            print(5)
+            self.plotWidget_air.show()
+        self.plotWidget_temp.hide()
+        self.plotWidget_hum.hide()
+        self.plotWidget_lum.hide()
+        self.plotWidget_mag.hide()
+
+    def click_shift_9(self):
+        self.tem_thread.wb.save(FILENAME_temp)
+        self.hum_thread.wb.save(FILENAME_hum)
+        self.lum_thread.wb.save(FILENAME_lum)
+        self.mag_thread.wb.save(FILENAME_mag)
+        self.air_thread.wb.save(FILENAME_air)
+        w_main.close()
+
+    def click_shift_10(self):
+        w_temlog.label.setText("气温传感器上/下线日志")
+        self.hide()
+        w_temlog.show()
+        w_temlog.init_log("tem_log.txt")
+
+    def click_shift_11(self):
+        w_temlog.label.setText("湿度传感器上/下线日志")
+        self.hide()
+        w_temlog.show()
+        w_temlog.init_log("hum_log.txt")
+
+    def click_shift_12(self):
+        w_temlog.label.setText("光照强度传感器上/下线日志")
+        self.hide()
+        w_temlog.show()
+        w_temlog.init_log("lum_log.txt")
+
+    def click_shift_13(self):
+        w_temlog.label.setText("磁场强度传感器上/下线日志")
+        self.hide()
+        w_temlog.show()
+        w_temlog.init_log("mag_log.txt")
+
+    def click_shift_14(self):
+        w_temlog.label.setText("空气质量传感器上/下线日志")
+        self.hide()
+        w_temlog.show()
+        w_temlog.init_log("air_log.txt")
+
+    def click_shift_15(self):
+        self.temp_upline = float(self.lineEdit.text())
+        self.label_25.setText(self.lineEdit.text())
+
+    def click_shift_16(self):
+        self.temp_downline = float(self.lineEdit_2.text())
+        self.label_23.setText(self.lineEdit_2.text())
+
+    def click_shift_17(self):
+        self.lum_upline = float(self.lineEdit_3.text())
+        self.label_47.setText(self.lineEdit_3.text())
+
+    def click_shift_18(self):
+        self.lum_downline = float(self.lineEdit_4.text())
+        self.label_46.setText(self.lineEdit_4.text())
+
+    def click_shift_19(self):
+        self.hum_upline = float(self.lineEdit_5.text())
+        self.label_36.setText(self.lineEdit_5.text())
+
+    def click_shift_20(self):
+        self.hum_downline = float(self.lineEdit_6.text())
+        self.label_35.setText(self.lineEdit_6.text())
+
+    def click_shift_21(self):
+        self.air_upline = float(self.lineEdit_7.text())
+        self.label_69.setText(self.lineEdit_7.text())
+
+    def click_shift_22(self):
+        self.air_downline = float(self.lineEdit_8.text())
+        self.label_68.setText(self.lineEdit_8.text())
+
+
+class MyTemLog(QMainWindow, Ui_TemLog):
+    def __init__(self):
+        super().__init__()
+        self.setupUi(self)
+        self.init_ui()
+
+    def init_ui(self):
+        # 设置样式
+        self.setWindowFlags(Qt.FramelessWindowHint)  # 设置窗口标志：隐藏窗口边框
+        self.msg = QLabel("")
+        # 信号与槽函数的连接  主页，设置，其他 切换
+        self.pushButton.clicked.connect(self.click_shift_1)
+
+    def init_log(self, log_file):
+        self.msg.resize(440, 15)
+        self.msg.setWordWrap(True)  # 自动换行 todo
+        self.msg.setAlignment(Qt.AlignTop)  # 靠上
+        self.scrollArea.setWidget(self.msg)
+        # 创建垂直布局器，用来添加自动滚动条
+        v_layout = QVBoxLayout()
+        v_layout.addWidget(self.scrollArea)
+
+        # 初始化日志
+        msg_history = []
+        file = open(log_file, "r")
+        for _ in range(50):
+            log = file.readline()
+            msg_history.append(log)
+            if log == '':
+                file.close()
+                break
+
+        self.msg.setText("".join(msg_history))
+        self.msg.resize(440, self.msg.frameSize().height() + 15)
+
+    def click_shift_1(self):
+        self.hide()
+        w_main.show()
+
+
+class MyWrongLog(QMainWindow, Ui_WrongLog):
+    def __init__(self):
+        super().__init__()
+        self.setupUi(self)
+        self.init_ui()
+
+    def init_ui(self):
+        # 设置样式
+        self.setWindowFlags(Qt.FramelessWindowHint)  # 设置窗口标志：隐藏窗口边框
+        self.msg = QLabel("")
+        # 信号与槽函数的连接  主页，设置，其他 切换
+        self.pushButton.clicked.connect(self.click_shift_1)
+
+    def init_log(self, log_file):
+        self.msg.resize(440, 15)
+        self.msg.setWordWrap(True)  # 自动换行 todo
+        self.msg.setAlignment(Qt.AlignTop)  # 靠上
+        self.scrollArea.setWidget(self.msg)
+        # 创建垂直布局器，用来添加自动滚动条
+        v_layout = QVBoxLayout()
+        v_layout.addWidget(self.scrollArea)
+
+        # 初始化日志
+        msg_history = []
+        file = open(log_file, "r")
+        for _ in range(50):
+            log = file.readline()
+            msg_history.append(log)
+            if log == '':
+                file.close()
+                break
+
+        self.msg.setText("".join(msg_history))
+        self.msg.resize(440, self.msg.frameSize().height() + 15)
+
+    def click_shift_1(self):
+        self.hide()
+        w_main.show()
+
+
+class MyWrong(QMainWindow, Ui_wrong):
+    def __init__(self):
+        super().__init__()
+        self.setupUi(self)
+        self.init_ui()
+
+    def init_ui(self):
+        self.setWindowFlags(Qt.FramelessWindowHint)  # 设置窗口标志：隐藏窗口边框
+        self.label_2.setAlignment(Qt.AlignCenter)
+        self.pushButton.clicked.connect(self.close)
+
+    def close(self):
+        self.hide()
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+
+    w_main = MyMainForm()
+    w_temlog = MyTemLog()
+    w_wrong = MyWrong()
+
+    w_main.show()
+    w_wrong.show()
+    w_wrong.hide()
+
+    sys.exit(app.exec_())

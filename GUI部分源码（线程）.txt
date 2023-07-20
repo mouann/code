@@ -1,0 +1,171 @@
+class LumThread(QThread):
+
+    def __init__(self):
+        super().__init__()
+        self.load_my_exel()
+
+        self.flag = True
+        self.timeStamp_s = 0
+        self.timeStamp_ms = None
+        self.offline_counter = 0
+        self.time_counter = 0
+        self.state = None
+
+    def run(self):
+        while True:
+            time.sleep(0.45)
+            response = requests.get(
+                url="https://iot-api.heclouds.com/thingmodel/query-device-property?product_id=7p808CR8z7&device_name=gy_30",
+                headers={"Accept": "application/json, text/plain, */*",
+                         "authorization": "version=2018-10-31&res=products%2F7p808CR8z7%2Fdevices%2Fgy_30&et=1893427200&method=md5&sign=kmjPwEzhWO2vUTQrcRYG9w%3D%3D"})
+            # self.timeStamp_ms = response.json()['data'][0]['time']
+            # print(response.json())
+            # print(self.timeStamp_ms)
+            if response.status_code == 200:
+                if self.timeStamp_ms != 0:
+                    # print(self.timeStamp_ms)
+                    if self.timeStamp_ms == int(response.json()['data'][0]['time']):
+                        self.flag = False
+                        self.offline_counter += 1
+                        if self.offline_counter >= 4:  # 控制上下线检测延时 todo
+                            if w_main.label_3.text() == "在线":
+                                localtime = time.localtime()
+                                output_time = str(localtime[0]) + '/' + str(localtime[1]) + '/' + str(localtime[2]) + '  ' + str(localtime[3]) + ':' + str(localtime[4]) + ':' + str(localtime[5])
+                                file = open("lum_log.txt", "a")
+                                file.write(output_time + "\t离线\n")
+                                file.close()
+
+                                if w_temlog.label.text() == "光照强度传感器上/下线日志":
+                                    msg_history = []
+                                    file = open("lum_log.txt", "r")
+                                    for _ in range(50):
+                                        log = file.readline()
+                                        msg_history.append(log)
+                                        if log == "":
+                                            file.close()
+                                            break
+                                    w_temlog.msg.setText(''.join(msg_history))
+                                    w_temlog.msg.resize(440, w_temlog.msg.frameSize().height() + 15)
+                            w_main.label_3.setText("离线")
+                            # w_main.state_main_lum.setStyleSheet("image: url(:/loo/unconnect.png);")  # image: url(:/loo/unconnect.png);  image: url(:/loo/connect.jpg);
+                            # w_main.frame_state_temp.setStyleSheet("image: url(:/loo/unconnect.png);")  # image: url(:/loo/unconnect.png);  image: url(:/loo/connect.jpg);
+                            self.state = False
+
+                    else:
+                        if w_main.label_3.text() == "离线":
+                            localtime = time.localtime()
+                            output_time = str(localtime[0]) + '/' + str(localtime[1]) + '/' + str(localtime[2]) + '  ' + str(localtime[3]) + ':' + str(localtime[4]) + ':' + str(localtime[5])
+                            # print(localtime[0], type(localtime[0]))
+                            file = open("lum_log.txt", "a")
+                            file.write(output_time + "\t上线\n")
+                            file.close()
+
+                            if w_temlog.label.text() == "光照强度传感器上/下线日志":
+                                msg_history = []
+                                file = open("lum_log.txt", "r")
+                                for _ in range(50):
+                                    log = file.readline()
+                                    msg_history.append(log)
+                                    if log == "":
+                                        file.close()
+                                        break
+                                w_temlog.msg.setText(''.join(msg_history))
+                                w_temlog.msg.resize(440, w_temlog.msg.frameSize().height() + 15)
+                        self.flag = True
+                        self.offline_counter = 0
+                        w_main.label_3.setText("在线")  # todo
+                        # w_main.state_main_lum.setStyleSheet("image: url(:/loo/connect.jpg);")  # image: url(:/loo/unconnect.png);  image: url(:/loo/connect.jpg);
+                        # w_main.frame_state_temp.setStyleSheet("image: url(:/loo/connect.jpg);")  # image: url(:/loo/unconnect.png);  image: url(:/loo/connect.jpg);
+                        self.state = True
+
+                self.timeStamp_ms = int(response.json()['data'][0]['time'])
+
+                # 获取数据并处理
+                self.lum_value = response.json()['data'][0]['value']
+                if float(self.lum_value) > w_main.lum_upline and self.state:
+                    w_wrong.label_2.setText("光照强度过高，请及时降低环境亮度！！！")
+                    if w_wrong.isHidden():
+                        if self.time_counter == 0:
+                            w_wrong.show()
+                            try:
+                                w_main.label_53.setText(output_time + '\t高光强警报')
+                                file = open("lum_wrong.txt", 'a')
+                                file.write(output_time + '\t高光强警报\n')
+                                file.close()
+                            except:
+                                print("lum_wrong update fail")
+                            self.time_counter = 30
+                        else:
+                            self.time_counter -= 1
+                elif float(self.lum_value) < w_main.lum_downline and self.state:
+                    w_wrong.label_2.setText("光照强度过低，请及时提高环境亮度！！！")
+                    if w_wrong.isHidden():
+                        if self.time_counter == 0:
+                            w_wrong.show()
+                            try:
+                                w_main.label_53.setText(output_time + '\t低光强警报')
+                                file = open("lum_wrong.txt", 'a')
+                                file.write(output_time + '\t低光强警报\n')
+                                file.close()
+                            except:
+                                print("lum_wrong update fail")
+                            self.time_counter = 30
+                        else:
+                            self.time_counter -= 1
+
+                w_main.label_55.setText(self.lum_value)
+                w_main.label_84.setText(self.lum_value)
+                # if self.state == False:
+                    # w_main.label_55.setText("————")
+                    # w_main.label_84.setText("————")
+
+            else:
+                print('Failed to get data, status code:', response.status_code)
+                break
+
+            ms = self.timeStamp_ms % 1000
+            self.timeStamp_s = self.timeStamp_ms // 1000
+
+            if self.flag:
+                self.timeArray = time.localtime(self.timeStamp_s)
+
+                self.timearray = []
+
+                for i in range(6):
+                    self.timearray.append(str(self.timeArray[i]))
+                self.timearray.append(str(ms))
+
+                output_time = self.timearray[0] + '/' + self.timearray[1] + '/' + self.timearray[2] + '  ' + self.timearray[3] + ':' + self.timearray[4] + ':' + self.timearray[5] + '.' + self.timearray[6]
+
+                # 输入获取的数据
+                self.ws.cell(row=self.r, column=1).value = output_time
+                # print(output_time)
+                self.ws.cell(row=self.r, column=2).value = self.lum_value
+                self.r += 1
+
+                self.r_temp = self.r - 1
+                self.ws.cell(row=1, column=5).value = self.r_temp
+                # self.wb.save(FILENAME_lum)
+
+    def load_my_exel(self):
+        if os.path.exists(FILENAME_lum):
+            # 选中对应工作表
+            self.wb = load_workbook(FILENAME_lum)
+            self.ws = self.wb.active
+
+            # 设置标题行
+            self.ws.cell(row=1, column=1).value = '时间'
+            self.ws.cell(row=1, column=2).value = '光强/lx'
+            self.ws.cell(row=1, column=4).value = '行数:'
+
+            # 读取历史数据量
+            if self.ws.cell(row=1, column=5).value is None or self.ws.cell(row=1, column=5).value <= 0:
+                self.ws.cell(row=1, column=5).value = 1
+            self.r = self.ws.cell(row=1, column=5).value + 1
+
+            # 设置列宽
+            self.ws.column_dimensions['A'].width = 30
+            self.ws.column_dimensions['B'].width = 10
+            self.ws.column_dimensions['C'].width = 10
+            self.ws.column_dimensions['D'].width = 10
+            self.ws.column_dimensions['E'].width = 10
